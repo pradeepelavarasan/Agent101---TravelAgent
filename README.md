@@ -4,9 +4,11 @@
 > 
 > ✨ **Real-time Data + Agentic Reasoning + Visual Trace = The Future of Travel Planning.**
 
-![Travel Agent UI Matrix](frontend/icon.png)
-
 📹 **Demo Video:** *[Coming Soon]*
+
+<img width="1344" height="2540" alt="Screenshot_20260425-084512 (1)" src="https://github.com/user-attachments/assets/e540387f-5cee-44ca-a209-5e8b11772fe9" />
+<img width="1340" height="2546" alt="Screenshot_20260425-084455 (1)" src="https://github.com/user-attachments/assets/ece2e03b-ae64-4c55-9d50-d2b09804f843" />
+
 
 ---
 
