@@ -97,6 +97,10 @@ function setEphemeralIndicator(type, text) {
 }
 
 function scrollToBottom() {
+    // Prevent scrolling out the welcome message on first click
+    if (messagesContainer.children.length === 0 && !ephemeralContainer.innerHTML) {
+        return;
+    }
     const main = document.getElementById('chat-container');
     main.scrollTop = main.scrollHeight;
 }
@@ -177,7 +181,7 @@ userInput.addEventListener('keypress', (e) => {
 
 // Scroll to bottom when mobile keyboard opens
 userInput.addEventListener('focus', () => {
-    setTimeout(scrollToBottom, 300);
+    setTimeout(scrollToBottom, 100);
 });
 
 // Service Worker Registration for PWA
