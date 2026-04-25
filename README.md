@@ -4,7 +4,7 @@
 > 
 > ✨ **Real-time Data + Agentic Reasoning + Visual Trace = The Future of Travel Planning.**
 
-📹 **Demo Video:** *[Coming Soon]*
+📹 **Demo Video:** https://youtu.be/LePpjIF75rc
 
 <p align="center">
   <img src="https://github.com/user-attachments/assets/e540387f-5cee-44ca-a209-5e8b11772fe9" width="350" />
