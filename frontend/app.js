@@ -6,8 +6,9 @@ const newSessionBtn = document.getElementById('new-session-btn');
 const brainBtn = document.getElementById('brain-btn');
 const welcomeMessage = document.querySelector('.welcome-message');
 
-// Session Management - Always start fresh on load
-let sessionId = generateSessionId();
+// Session Management
+let sessionId = null;
+let isSessionInitialized = false;
 
 function generateSessionId() {
     const now = new Date();
@@ -17,11 +18,11 @@ function generateSessionId() {
 
 async function initSession() {
     sessionId = generateSessionId();
-    // Clear UI
-    messagesContainer.innerHTML = '';
-    ephemeralContainer.innerHTML = '';
-    welcomeMessage.style.display = 'block';
-
+    isSessionInitialized = true;
+    
+    // Clear UI only if it's a manual "New Session" click
+    // For auto-init on first message, we don't want to clear
+    
     // Ping backend to create log file instantly
     try {
         await fetch('/init_session', {
@@ -34,15 +35,17 @@ async function initSession() {
     }
 }
 
-// Initialize on start
-initSession();
+// Reset UI and prepare for a new session without creating the file yet
+function resetForNewSession() {
+    sessionId = null;
+    isSessionInitialized = false;
+    messagesContainer.innerHTML = '';
+    ephemeralContainer.innerHTML = '';
+    welcomeMessage.style.display = 'block';
+}
 
-newSessionBtn.addEventListener('click', initSession);
+newSessionBtn.addEventListener('click', resetForNewSession);
 
-brainBtn.addEventListener('click', () => {
-    // Placeholder for future "Under the hood" view
-    alert(`Current Session ID: ${sessionId}\nCheck the logs directory on the backend for the detailed trace!`);
-});
 
 // Simple Markdown to HTML parser
 function parseMarkdown(text) {
@@ -100,6 +103,10 @@ function scrollToBottom() {
 
 // Network Request
 async function sendMessage(query) {
+    if (!isSessionInitialized) {
+        await initSession();
+    }
+    
     if (!query.trim()) return;
 
     appendMessage('user', query);
@@ -168,6 +175,11 @@ userInput.addEventListener('keypress', (e) => {
     }
 });
 
+// Scroll to bottom when mobile keyboard opens
+userInput.addEventListener('focus', () => {
+    setTimeout(scrollToBottom, 300);
+});
+
 // Service Worker Registration for PWA
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
@@ -175,4 +187,124 @@ if ('serviceWorker' in navigator) {
             .then(reg => console.log('Service Worker registered', reg))
             .catch(err => console.error('Service Worker registration failed', err));
     });
+}
+
+// ==========================================
+// Under the Hood Visualizer Logic
+// ==========================================
+
+const uthView = document.getElementById('under-the-hood-view');
+const closeUthBtn = document.getElementById('close-uth-btn');
+const sessionsListView = document.getElementById('sessions-list-view');
+const sessionDetailsView = document.getElementById('session-details-view');
+const backToSessionsBtn = document.getElementById('back-to-sessions-btn');
+const timelineContainer = document.getElementById('timeline-container');
+
+// Open the Under the Hood view
+brainBtn.addEventListener('click', () => {
+    uthView.classList.remove('hidden');
+    showSessionsList();
+});
+
+// Close
+closeUthBtn.addEventListener('click', () => {
+    uthView.classList.add('hidden');
+});
+
+// Back to list
+backToSessionsBtn.addEventListener('click', () => {
+    showSessionsList();
+});
+
+async function showSessionsList() {
+    sessionDetailsView.classList.add('hidden');
+    sessionsListView.classList.remove('hidden');
+    sessionsListView.innerHTML = '<div style="text-align:center; padding: 20px;">Loading sessions...</div>';
+    
+    try {
+        const res = await fetch('/sessions');
+        const data = await res.json();
+        
+        sessionsListView.innerHTML = '';
+        if (data.sessions.length === 0) {
+            sessionsListView.innerHTML = '<div style="text-align:center; color: #94a3b8;">No sessions recorded yet.</div>';
+            return;
+        }
+        
+        data.sessions.forEach(s => {
+            const card = document.createElement('div');
+            card.className = 'session-card';
+            card.innerHTML = `
+                <div class="session-info">
+                    <h3>Session</h3>
+                    <p>${s.timestamp}</p>
+                </div>
+                <div class="session-arrow">
+                    <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                </div>
+            `;
+            card.addEventListener('click', () => showSessionDetails(s.id));
+            sessionsListView.appendChild(card);
+        });
+    } catch (e) {
+        sessionsListView.innerHTML = '<div style="color:red; text-align:center;">Failed to load sessions.</div>';
+    }
+}
+
+async function showSessionDetails(sessionId) {
+    sessionsListView.classList.add('hidden');
+    sessionDetailsView.classList.remove('hidden');
+    timelineContainer.innerHTML = '<div style="text-align:center; padding: 20px;">Parsing trace...</div>';
+    
+    try {
+        const res = await fetch(`/sessions/${sessionId}`);
+        const data = await res.json();
+        
+        timelineContainer.innerHTML = '';
+        if (!data.turns || data.turns.length === 0) {
+            timelineContainer.innerHTML = '<div style="text-align:center; color: #94a3b8;">No valid interactions found in this session log.</div>';
+            return;
+        }
+        
+        data.turns.forEach(turn => {
+            const turnDiv = document.createElement('div');
+            turnDiv.className = 'timeline-turn';
+            
+            // User Query Node
+            let html = `
+                <div class="timeline-query">
+                    <span>👤</span> <span>${turn.query}</span>
+                </div>
+            `;
+            
+            // Steps (Thoughts & Actions)
+            turn.iterations.forEach(it => {
+                const isAction = it.type === 'action';
+                const icon = isAction ? '🛠️' : '🧠';
+                const extraClass = isAction ? 'action' : '';
+                
+                html += `
+                    <div class="timeline-step">
+                        <div class="step-icon">${icon}</div>
+                        <div class="step-content ${extraClass}">${it.content}</div>
+                    </div>
+                `;
+            });
+            
+            // Agent Response Node
+            if (turn.response) {
+                html += `
+                    <div class="timeline-step">
+                        <div class="step-icon">✨</div>
+                        <div class="step-content response">${parseMarkdown(turn.response)}</div>
+                    </div>
+                `;
+            }
+            
+            turnDiv.innerHTML = html;
+            timelineContainer.appendChild(turnDiv);
+        });
+    } catch (e) {
+        timelineContainer.innerHTML = '<div style="color:red; text-align:center;">Failed to load trace.</div>';
+    }
 }

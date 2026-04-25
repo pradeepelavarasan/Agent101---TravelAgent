@@ -12,7 +12,7 @@
     <meta name="apple-mobile-web-app-title" content="Travel AI">
     <link rel="apple-touch-icon" href="icon.png">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="styles.css?v=3">
 </head>
 <body>
     <div class="app-container">
@@ -47,8 +47,35 @@
                 </button>
             </div>
         </footer>
+
+        <!-- Under the Hood Overlay -->
+        <div id="under-the-hood-view" class="hidden">
+            <div class="uth-header">
+                <button id="close-uth-btn" class="icon-btn header-btn" title="Close">
+                    <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+                <h2 id="uth-title">Session History</h2>
+                <div style="width:42px;"></div> <!-- spacer -->
+            </div>
+
+            <!-- L1 Screen: Session List -->
+            <div id="sessions-list-view" class="uth-content">
+                <!-- Session cards will be injected here -->
+            </div>
+
+            <!-- L2 Screen: Session Details / Timeline -->
+            <div id="session-details-view" class="uth-content hidden">
+                <button id="back-to-sessions-btn" class="text-btn back-btn">
+                    <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+                    Back to Sessions
+                </button>
+                <div id="timeline-container">
+                    <!-- Timeline items will be injected here -->
+                </div>
+            </div>
+        </div>
     </div>
 
-    <script src="app.js"></script>
+    <script src="app.js?v=3"></script>
 </body>
 </html>
